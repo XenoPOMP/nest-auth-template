@@ -9,6 +9,7 @@ import { PrismaService } from '../../features/prisma.service';
 import { User } from '@prisma/client';
 import passwordGenerator from 'generate-password';
 import { hash, verify } from 'argon2';
+import { AuthDto } from '../auth/dto/auth.dto';
 
 @Injectable()
 export class UserService implements UserServiceContract<UserContract> {
@@ -119,5 +120,23 @@ export class UserService implements UserServiceContract<UserContract> {
       },
     });
     return updatedUser.id;
+  }
+
+  async getOneByUsername(username: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        username,
+      },
+    });
+  }
+
+  async createPlain(dto: AuthDto): Promise<User> {
+    const user: Pick<User, 'username' | 'password'> = {
+      username: dto.username,
+      password: await hash(dto.password),
+    };
+    return this.prisma.user.create({
+      data: user,
+    });
   }
 }
