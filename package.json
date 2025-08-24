@@ -28,6 +28,8 @@
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.14.0",
     "@sclable/nestjs-auth": "^1.2.7",
+    "argon2": "^0.44.0",
+    "generate-password": "^1.7.1",
     "prisma": "^6.14.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

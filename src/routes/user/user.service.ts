@@ -7,15 +7,11 @@ import { UserContract } from '../../contracts/user.contract';
 import { UserID } from '@sclable/nestjs-auth/dist/src/types';
 import { PrismaService } from '../../features/prisma.service';
 import { User } from '@prisma/client';
+import passwordGenerator from 'generate-password';
+import { hash } from 'argon2';
 
 @Injectable()
-export class UserService
-  implements
-    Omit<
-      UserServiceContract<UserContract>,
-      'createFromExternalUserData' | 'updateFromExternalUserData'
-    >
-{
+export class UserService implements UserServiceContract<UserContract> {
   constructor(private readonly prisma: PrismaService) {}
 
   private stringToUndefineable(value: string | null): string | undefined {
@@ -79,5 +75,43 @@ export class UserService
       },
     });
     return this.followContract(user);
+  }
+
+  async createFromExternalUserData(
+    userData: AuthProviderUserContract,
+  ): Promise<UserID> {
+    const { externalId, username, firstName, lastName, email } = userData;
+    const newUser = await this.prisma.user.create({
+      data: {
+        externalId: externalId.toString(),
+        name: `${firstName} ${lastName}`,
+        username,
+        email,
+        password: await hash(
+          passwordGenerator.generate({
+            length: 15,
+            numbers: true,
+          }),
+        ),
+      },
+    });
+    return newUser.id;
+  }
+
+  async updateFromExternalUserData(
+    userData: AuthProviderUserContract,
+  ): Promise<UserID> {
+    const { externalId, username, firstName, lastName, email } = userData;
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        externalId: externalId.toString(),
+      },
+      data: {
+        username,
+        name: `${firstName} ${lastName}`,
+        email,
+      },
+    });
+    return updatedUser.id;
   }
 }
