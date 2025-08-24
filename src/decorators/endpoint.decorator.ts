@@ -55,7 +55,7 @@ export function Endpoint(type: Method, path: Path, options?: EndpointOptions) {
     validate ? UsePipes(new ValidationPipe()) : undefined,
     HttpCode(code),
     HttpMethod(path),
-    authRequired ? Auth() : undefined,
+    authRequired ? Auth() : Public(),
   ]
     .filter((d) => d !== undefined)
     .reverse();
