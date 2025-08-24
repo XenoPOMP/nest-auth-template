@@ -1,12 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { UserServiceContract } from '@sclable/nestjs-auth';
+import {
+  AuthProviderUserContract,
+  UserServiceContract,
+} from '@sclable/nestjs-auth';
 import { UserContract } from '../../contracts/user.contract';
 import { UserID } from '@sclable/nestjs-auth/dist/src/types';
 import { PrismaService } from '../../features/prisma.service';
 import { User } from '@prisma/client';
 
 @Injectable()
-export class UserService implements UserServiceContract<UserContract> {
+export class UserService
+  implements
+    Omit<
+      UserServiceContract<UserContract>,
+      'createFromExternalUserData' | 'updateFromExternalUserData'
+    >
+{
   constructor(private readonly prisma: PrismaService) {}
 
   private stringToUndefineable(value: string | null): string | undefined {
