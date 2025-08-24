@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import {
   AuthProviderUserContract,
   UserServiceContract,
@@ -8,7 +8,7 @@ import { UserID } from '@sclable/nestjs-auth/dist/src/types';
 import { PrismaService } from '../../features/prisma.service';
 import { User } from '@prisma/client';
 import passwordGenerator from 'generate-password';
-import { hash } from 'argon2';
+import { hash, verify } from 'argon2';
 
 @Injectable()
 export class UserService implements UserServiceContract<UserContract> {
@@ -68,13 +68,19 @@ export class UserService implements UserServiceContract<UserContract> {
     username: string,
     password: string,
   ): Promise<UserContract | null> {
-    const user = await this.prisma.user.findUnique({
+    const oneByUsername = await this.prisma.user.findUnique({
       where: {
         username,
-        password,
       },
     });
-    return this.followContract(user);
+
+    if (!oneByUsername) throw new UnauthorizedException('User not found');
+
+    /** True if password from dto is valid. */
+    const isValid = await verify(oneByUsername.password, password);
+    if (!isValid) throw new UnauthorizedException('Invalid password');
+
+    return this.followContract(oneByUsername);
   }
 
   async createFromExternalUserData(
