@@ -1,21 +1,15 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
-import { Public } from '@sclable/nestjs-auth';
+import { Body, Controller } from '@nestjs/common';
 import { AuthDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
+import { Endpoint } from '../../decorators/endpoint.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Public()
-  @UsePipes(new ValidationPipe())
-  @Post('register')
+  @Endpoint('POST', 'register', {
+    authRequired: false,
+  })
   async register(@Body() dto: AuthDto) {
     return this.authService.register(dto);
   }
